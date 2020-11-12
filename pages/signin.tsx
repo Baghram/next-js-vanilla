@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { theme } from '@components/DashboardLayout';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
@@ -123,7 +124,9 @@ export default function SignIn(): JSX.Element {
                 label="Email Address"
                 name="email"
                 autoComplete="email"
-                onChange={(e) => usernameInput(e)}
+                onChange={(e: any): any => {
+                  usernameInput(e);
+                }}
                 autoFocus
               />
               <TextField
@@ -135,7 +138,9 @@ export default function SignIn(): JSX.Element {
                 label="Password"
                 type="password"
                 id="password"
-                onChange={(e) => passInput(e)}
+                onChange={(e: any): any => {
+                  passInput(e);
+                }}
               />
               <Button
                 fullWidth

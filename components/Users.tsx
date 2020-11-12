@@ -120,10 +120,10 @@ function Users(props: ContentProps) {
       },
     }).then((res) => {
       // eslint-disable-next-line
-        // console.log(res.data.data)
+      // console.log(res.data.data)
       setUsers(res.data.data);
       // eslint-disable-next-line
-        setLoading(false);
+      setLoading(false);
       setDummies(userContainer);
     });
   }, [users]);
