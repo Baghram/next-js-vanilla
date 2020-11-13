@@ -71,20 +71,17 @@ handler.post(async (req: any, res: any) => {
     const rawData = fs.readFileSync(files.avatar.path);
     const path = `uploads/avatar/${moment(new Date()).format('YYYY/MM')}`;
     const imageType = imgtype(files.avatar.type);
-    const prKey = fs.readFileSync('configJWT/public.pem');
-    const algorithms: any = 'HS256';
-    let userId;
-    await verify(token, prKey, { algorithms }, (err: any, decoded: any) => {
-      userId = decoded.id;
-    });
+    const userId = checktoken(token);
+    // console.log(body, rawData, path, imageType, userId);
     const existData = await prisma.profile.findFirst({
       where: {
-        userid: userId,
+        userid: userId.id,
       },
     });
     if (!existData) {
+      console.log(path);
       fs.mkdirpSync(path);
-      const imagePath = `${path}/avatar_${userId}.${imageType}`;
+      const imagePath = `${path}/avatar_${userId.id}.${imageType}`;
       await fs.writeFile(imagePath, rawData, (err) => {});
       prisma.profile
         .create({
@@ -95,25 +92,27 @@ handler.post(async (req: any, res: any) => {
             avatartype: files.avatar.type,
             User: {
               connect: {
-                id: userId,
+                id: userId.id,
               },
             },
           },
         })
+        .then((result) => {
+          return res.status(201).json({
+            message: 'add profile success!!',
+            data: result,
+          });
+        })
         .finally(() => {
           prisma.$disconnect();
         });
-    } else {
-      return res.status(400).json({
-        message: 'DATA ALREADY EXIST',
-      });
     }
+    return res.status(400).json({
+      message: 'DATA ALREADY EXIST',
+    });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: err.message });
   }
-  return res.status(200).json({
-    message: 'add profile success!!',
-  });
 });
 // PUT method
 handler.put(async (req: any, res: any) => {
@@ -123,110 +122,115 @@ handler.put(async (req: any, res: any) => {
   const rawData = fs.readFileSync(files.avatar.path);
   const path = `uploads/avatar/${moment(new Date()).format('YYYY/MM')}`;
   const imageType = imgtype(files.avatar.type);
-  const prKey = fs.readFileSync('configJWT/public.pem');
-  const algorithms: any = 'HS256';
-  let userId;
   let updatePath: string | undefined;
-  await verify(token, prKey, { algorithms }, (err: any, decoded: any) => {
-    userId = decoded.id;
-  });
-  fs.mkdirpSync(path);
-  const existData = await prisma.profile.findFirst({
-    where: {
-      userid: userId,
-    },
-  });
-  const imagePath = `${path}/avatar_${userId}.${imageType}`;
-  if (existData) {
-    await prisma.profile
-      .findFirst({
-        where: {
-          userid: userId,
-        },
-      })
-      .then(async (result) => {
-        const delPath: any = paths.resolve(
-          `${process.cwd()}/${result?.avatar}`
-        );
-        updatePath = result?.avatar;
-        await fs.remove(delPath);
-      })
-      .finally(() => {
-        prisma.$disconnect();
-      });
-    await prisma.profile
-      .update({
-        where: {
-          id: Number(body.id),
-        },
-        data: {
-          alamat: body.alamat,
-          handphone: body.handphone,
-          avatar: imagePath,
-          avatartype: files.avatar.type,
-        },
-      })
-      .then(() => {
-        fs.writeFile(imagePath, rawData, (err) => {});
-      })
-      .catch((error) => {
-        res.status(400).json({
-          message: 'data does not exist',
+  const userId = await checktoken(token);
+  if (userId) {
+    fs.mkdirpSync(path);
+    const existData = await prisma.profile.findFirst({
+      where: {
+        userid: userId.id,
+      },
+    });
+    const imagePath = `${path}/avatar_${userId.id}.${imageType}`;
+    if (existData) {
+      // const verifyData = await prisma.profile.findFirst({
+      //   where: { userid: userId.id },
+      // });
+      // console.log(verifyData?.id, req.body.id)
+      // if (verifyData?.id === Number(req.body.id)) {
+      await prisma.profile
+        .findFirst({
+          where: {
+            userid: userId.id,
+          },
+        })
+        .then(async (result) => {
+          const delPath: any = paths.resolve(
+            `${process.cwd()}/${result?.avatar}`
+          );
+          updatePath = result?.avatar;
+          await fs.remove(delPath);
+        })
+        .finally(() => {
+          prisma.$disconnect();
         });
-      })
-      .finally(() => {
-        prisma.$disconnect();
-      });
+      await prisma.profile
+        .update({
+          where: {
+            id: Number(body.id),
+          },
+          data: {
+            alamat: body.alamat,
+            handphone: body.handphone,
+            avatar: imagePath,
+            avatartype: files.avatar.type,
+          },
+        })
+        .then(() => {
+          fs.writeFile(imagePath, rawData, (err) => {});
+        })
+        .catch((error) => {
+          res.status(400).json({
+            message: 'data does not exist',
+          });
+        })
+        .finally(() => {
+          prisma.$disconnect();
+        });
 
-    return res.status(200).json({
-      message: 'update profile success',
+      return res.status(200).json({
+        message: 'update profile success',
+      });
+      // }
+      // return res.status(400).json({
+      //   message: 'Unauthorized',
+      // });
+    }
+    return res.status(400).json({
+      message: 'update profile failed',
     });
   }
   return res.status(400).json({
-    message: 'Data is not Exist',
+    message: 'Unauthorized',
   });
 });
 // DELETE method
 handler.delete(async (req: any, res: any) => {
   try {
     const { token } = req.headers;
-    const algorithms: any = 'HS256';
-    let userId: number;
-    let data: any;
-    const prKey = fs.readFileSync('configJWT/public.pem');
-    await verify(token, prKey, { algorithms }, (err: any, decoded: any) => {
-      data = decoded;
-    });
-    const userExist = await prisma.profile.findFirst({
-      where: {
-        userid: data.id,
-      },
-    });
-    if (userExist) {
-      prisma.profile
-        .delete({
-          where: {
-            id: userExist.id,
-          },
-        })
-        .then((result) => {
-          const delPath: any = paths.resolve(
-            `${process.cwd()}/${userExist?.avatar}`
-          );
-          fs.remove(delPath);
-          // return res.status(200).json({
-          //   message: 'delete success',
-          // });
-        })
-        .catch((err) => {
-          res.status(400).json({
-            message: 'delete failed',
-            errMessage: err,
+    const userId = await checktoken(token);
+    if (userId) {
+      const userExist = await prisma.profile.findFirst({
+        where: {
+          userid: userId.id,
+        },
+      });
+      if (userExist) {
+        prisma.profile
+          .delete({
+            where: {
+              id: userExist.id,
+            },
+          })
+          .then((result) => {
+            const delPath: any = paths.resolve(
+              `${process.cwd()}/${userExist?.avatar}`
+            );
+            fs.remove(delPath);
+            // return res.status(200).json({
+            //   message: 'delete success',
+            // });
+          })
+          .catch((err) => {
+            res.status(400).json({
+              message: 'delete failed',
+              errMessage: err,
+            });
+          })
+          .finally(async () => {
+            await prisma.$disconnect();
           });
-        })
-        .finally(async () => {
-          await prisma.$disconnect();
-        });
+      }
     }
   } catch (error) {
     return res.status(400).json({

@@ -21,10 +21,11 @@ Optional:
 
 ### Data Params
 
-<pre><code>Body : {
+<pre><code>
+  Body : {
    username : String,
    password : String
-}</code></pre>
+  }</code></pre>
 
 ### Success Response:
 
@@ -67,7 +68,13 @@ Optional:
 
 
 ### Data Params
-
+<pre>
+<code>
+  headers: {
+    token: String
+  }
+</code>
+</pre>
 
 ### Success Response:
 
@@ -118,6 +125,9 @@ Optional:
 
 ### Data Params
 <pre><code>
+  headers: {
+    token: String 
+  }
   body: {
     username: String,
     password: String
@@ -127,7 +137,7 @@ Optional:
 ### Success Response:
 
 <pre><code>
-Code: 200 OK<br/>
+Code: 201  Created<br/>
 Content:{
           "message": "create success"
         }</code></pre>
@@ -167,6 +177,9 @@ Optional:
 
 ### Data Params
 <pre><code>
+  headers: {
+  token: String
+}
   body: {
     username: String,
     password: String,
@@ -217,6 +230,9 @@ Optional:
 
 ### Data Params
 <pre><code>
+  headers: {
+    token: String
+  }
   body: {
     id: Integer
   }
@@ -244,7 +260,7 @@ Content: {
 
 Notes:
 ______________________________________________________________________________________
-## Get Profile
+## Get Profile(get many profile)
 
 ### URL
 
@@ -263,14 +279,35 @@ Optional:
 
 
 ### Data Params
+<pre>
+<code>
+headers: {
+  token: string
+}
+</code>
+</pre>
 
 ### Success Response:
 
 <pre><code>
 Code: 200 OK<br/>
 Content:{
-          "message": "delete success"
-        }</code></pre>
+    "message": "get Profile Success",
+    "data": {
+        "id": 11,
+        "username": "test@haha.com",
+        "Profile": [
+            {
+                "id": 15,
+                "handphone": "sssdddd",
+                "alamat": "tralalal",
+                "avatar": "uploads/avatar/2020/11/avatar_11.jpeg",
+                "userid": 11,
+                "avatartype": "image/jpeg"
+            }
+        ]
+    }
+}</code></pre>
 
 
 ### Error Response:
@@ -285,3 +322,181 @@ Content: {
 
 
 Notes:
+  ______________________________________________________________________________________
+  ## Create Profile
+
+  ### URL
+
+  <code>"/api/userdata/profile"</code>
+
+  ### Method:
+
+  <b>POST</b>
+
+  ### URL Params
+
+  Required:
+
+
+  Optional:
+
+
+  ### Data Params
+  <pre>
+  <code>
+  headers: {
+    token: string
+  },
+  body: {
+    handphone: String,
+    alamat: String,
+    avatar: Files(image),
+    ,
+
+  }
+  </code>
+  </pre>
+
+  ### Success Response:
+
+  <pre><code>
+  Code: 201 Created<br/>
+  {
+      "message": "add profile success!!",
+      "data": {
+          "id": 19,
+          "handphone": "sssdddd",
+          "alamat": "tralalal",
+          "avatar": "uploads/avatar/2020/11/avatar_11.jpeg",
+          "userid": 11,
+          "avatartype": "image/jpeg"
+      }
+  }
+  </code></pre>
+
+
+  ### Error Response:
+  <pre>
+  <code>Code: 400 Bad Request<br/>
+
+  Content: {
+      "error": String
+  }
+  </code>
+  </pre>
+
+
+  Notes:
+  ______________________________________________________________________________________
+  ## Update Profile
+
+  ### URL
+
+  <code>"/api/userdata/profile"</code>
+
+  ### Method:
+
+  <b>PUT</b>
+
+  ### URL Params
+
+  Required:
+
+
+  Optional:
+
+
+  ### Data Params
+  <pre>
+  <code>
+  headers: {
+    token: string
+  },
+  body: {
+    handphone: String,
+    alamat: String,
+    avatar: Files(image),
+    id: Integer,
+
+  }
+  </code>
+  </pre>
+
+  ### Success Response:
+
+  <pre><code>
+  Code: 200 OK<br/>
+  
+  Content:{
+    "message": "update profile success"
+  }
+  </code></pre>
+
+
+  ### Error Response:
+  <pre>
+  <code>Code: 400 Bad Request<br/>
+
+  Content: {
+      "error": String
+  }
+  </code>
+  </pre>
+
+
+  Notes:
+______________________________________________________________________________________
+  ## Delete Profile
+
+  ### URL
+
+  <code>"/api/userdata/profile"</code>
+
+  ### Method:
+
+  <b>DELETE</b>
+
+  ### URL Params
+
+  Required:
+
+
+  Optional:
+
+
+  ### Data Params
+  <pre>
+  <code>
+  headers: {
+    token: string
+  },
+  body: {
+    id: Integer,
+
+  }
+  </code>
+  </pre>
+
+  ### Success Response:
+
+  <pre><code>
+  Code: 200 OK<br/>
+  
+  Content:{
+    "message": "delete success"
+}
+  </code></pre>
+
+
+  ### Error Response:
+  <pre>
+  <code>Code: 400 Bad Request<br/>
+
+  Content: {
+      "error": String
+  }
+  </code>
+  </pre>
+
+
+  Notes:

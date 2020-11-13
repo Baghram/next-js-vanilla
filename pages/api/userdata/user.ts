@@ -43,7 +43,7 @@ const addUserData = async (req: NextApiRequest, res: NextApiResponse) => {
       await prisma.$disconnect();
     });
 
-  return res.status(200).json({
+  return res.status(201).json({
     message: 'create success',
   });
 };
