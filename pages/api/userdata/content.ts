@@ -53,9 +53,6 @@ handler.post(async (req: any, res: any) => {
   const imagePath = `${path}/content_${decoded.username}_${req.body.publishdate}.${imageType}`;
   const rawData = fs.readFileSync(files.contentphoto.path);
   let data;
-  res.status(200).json({
-    message: 'haahah',
-  });
   try {
     await prisma.content
       .create({

@@ -60,9 +60,13 @@ const getuser = (req: NextApiRequest, res: NextApiResponse): any => {
       .then((Users) => {
         const data: any = [];
         Users.map((User) => {
-          data.push(User);
-          delete data.passwords;
+          data.push({
+            id: User.id,
+            username: User.username,
+            Profile: User.Profile,
+          });
         });
+        console.log(data);
         return res.status(200).json({
           data,
         });
@@ -103,16 +107,22 @@ async function updateUser(
 }
 
 const updateUserData = (req: NextApiRequest, res: NextApiResponse): void => {
-  updateUser(req.body.username, req.body.password, req.body.id)
-    .catch((e) => {
-      throw e;
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
+  try {
+    updateUser(req.body.username, req.body.password, req.body.id)
+      .catch((e) => {
+        throw e;
+      })
+      .finally(async () => {
+        await prisma.$disconnect();
+      });
+    res.status(200).json({
+      message: 'update success',
     });
-  res.status(200).json({
-    message: 'update success',
-  });
+  } catch (error) {
+    res.status(400).json({
+      message: 'update failed',
+    });
+  }
 };
 // Update User Done
 // Delete User
@@ -126,16 +136,23 @@ async function deleteUser(id: number | any) {
 }
 
 const deleteUserData = (req: NextApiRequest, res: NextApiResponse): void => {
-  deleteUser(req.body.id)
-    .catch((e) => {
-      throw e;
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-      return res.status(200).json({
-        message: 'delete success',
+  if (req.body.id) {
+    deleteUser(req.body.id)
+      .catch((e) => {
+        return res.status(400).json({
+          message: 'delete failed',
+        });
+      })
+      .finally(async () => {
+        await prisma.$disconnect();
+        return res.status(200).json({
+          message: 'delete success',
+        });
       });
-    });
+  }
+  return res.status(400).json({
+    message: 'delete failed',
+  });
 };
 // Delete User Done
 

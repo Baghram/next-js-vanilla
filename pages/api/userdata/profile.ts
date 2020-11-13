@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any , @typescript-eslint/no-throw-literal */
 import middlewares from '@middlewares/index';
 import { PrismaClient } from '@prisma/client';
+import checktoken from '@utils/checktoken';
 import imgtype from '@utils/filetype';
 import * as fs from 'fs-extra';
 import { verify } from 'jsonwebtoken';
@@ -24,33 +25,41 @@ const prisma = new PrismaClient();
 // GET method (get data pribadi sesuai token yang dikirim)
 handler.get(async (req: any, res: any) => {
   const { token } = req.headers;
-  const algorithms: any = 'HS256';
-  let userId: number;
+  const decoded = checktoken(token);
+  const userId = decoded.id;
   let data: any;
-  const prKey = fs.readFileSync('configJWT/public.pem');
-  await verify(token, prKey, { algorithms }, (err: any, decoded: any) => {
-    userId = decoded.id;
-    prisma.user
-      .findOne({
-        where: {
-          id: userId,
-        },
-        include: {
-          Profile: true,
-        },
-      })
-      .then((result) => {
-        data = result;
-      })
-      .finally(() => {
-        prisma.$disconnect();
-        delete data.passwords;
-        return res.status(200).json({
-          message: 'get Profile Success',
-          data,
-        });
+  await prisma.user
+    .findOne({
+      where: {
+        id: userId,
+      },
+      include: {
+        Profile: true,
+      },
+    })
+    .then((result) => {
+      if (result === null) {
+        throw {
+          message: 'data does not exist',
+        };
+      }
+      data = result;
+      console.log(data);
+    })
+    .catch((err) => {
+      return res.status(400).json({
+        message: 'get data failed',
+        error: err,
       });
-  });
+    })
+    .finally(() => {
+      prisma.$disconnect();
+      delete data.passwords;
+      return res.status(200).json({
+        message: 'get Profile Success',
+        data,
+      });
+    });
 });
 // POST method
 handler.post(async (req: any, res: any) => {

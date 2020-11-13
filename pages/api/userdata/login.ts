@@ -15,23 +15,26 @@ async function DBcheckUser(username: string) {
       username,
     },
   });
+  return Users;
 }
 
 const post = (req: NextApiRequest, res: NextApiResponse): any => {
-  return DBcheckUser(req.body.username)
-    .then(() => {
+  DBcheckUser(req.body.username)
+    .then((userData) => {
       return bcrypt.compare(
         req.body.password,
-        Users.passwords,
+        userData.passwords,
         (err, result) => {
           if (result) {
             const prKey = fs.readFileSync('configJWT/private.pem');
+            const passPhrase: any = process.env.PASSPHRASE;
             token = sign(
               {
-                username: Users.username,
-                id: Users.id,
+                username: userData.username,
+                id: userData.id,
               },
-              prKey
+              { key: prKey, passphrase: passPhrase },
+              { algorithm: 'RS256' }
             );
             return res.status(200).json({
               message: 'login success',
